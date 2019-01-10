@@ -30,6 +30,7 @@ public class RideSharingResponseWritter implements CommandLineRunner {
 
 	public void writeResponse(RideSharingConfirmationAck ack) {
 		try {
+			log.info("Writting Ack to File: "+ack);
 			responseQueue.put(ack);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -40,7 +41,7 @@ public class RideSharingResponseWritter implements CommandLineRunner {
 
 		@Override
 		public void run() {
-			log.info("RideSharingResponseWritter Thread Started");
+			log.info("RideSharingResponseAckWritter Thread Started");
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			RideSharingConfirmationAck ack = null;
 			File file = new File(responseDir);
@@ -48,6 +49,7 @@ public class RideSharingResponseWritter implements CommandLineRunner {
 				file.createNewFile();
 				while (true) {
 					ack = responseQueue.take();
+					log.info("Ack recieved from queue by writting thread: "+ Thread.currentThread().getId()+"Response: "+ack);
 					gson.toJson(ack, new FileWriter(file, true));
 				}
 			} catch (JsonIOException e) {

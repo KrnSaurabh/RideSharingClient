@@ -14,7 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.miamioh.ridesharingclient.service.RequestProducerService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
+@Slf4j
 public class RideSharingRequestProducer {
 	
 	@Autowired
@@ -22,11 +25,12 @@ public class RideSharingRequestProducer {
 	
 	@PostMapping(value="/RideSharingClient/requests", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
 	public void createRideSharingRequestsFromFile(@RequestParam("file") MultipartFile file) throws IOException {
-		
+		log.info("Inside RideSharing Request Producer");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
 		String input = "";
 		while((input = reader.readLine()) != null) {
 			String line = input;
+			log.info("Input String Read: "+line);
 			CompletableFuture.runAsync(()-> requestProducerService.createAndSendRequestAsync(line));
 		}
 	}

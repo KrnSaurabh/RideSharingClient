@@ -31,6 +31,7 @@ public class TaxiResponseWritter implements CommandLineRunner{
 
 	public void writeResponse(TaxiResponse response) {
 		try {
+			log.info("Writting Response to File: "+response);
 			responseQueue.put(response);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -49,6 +50,7 @@ public class TaxiResponseWritter implements CommandLineRunner{
 				file.createNewFile();
 				while (true) {
 					response = responseQueue.take();
+					log.info("Response recieved from queue by writting thread: "+ Thread.currentThread().getId()+"Response: "+response);
 					gson.toJson(response, new FileWriter(file, true));
 				}
 			} catch (JsonIOException e) {
