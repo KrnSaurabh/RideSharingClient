@@ -99,10 +99,11 @@ public class RequestProducerService {
 		
 		try {
 			log.info("Sleeping before getting the response: "+Thread.currentThread().getId());
-			Thread.sleep(60000L);
+			Thread.sleep(30000L);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		log.info("After Sleep "+Thread.currentThread().getId());
 		TaxiResponse taxiResponsesByRequestId = taxiResponseServiceProxy.getTaxiResponsesByRequestId(requestId);
 		log.info("Taxi Response: "+taxiResponsesByRequestId);
 		taxiResponseWritter.writeResponse(taxiResponsesByRequestId);

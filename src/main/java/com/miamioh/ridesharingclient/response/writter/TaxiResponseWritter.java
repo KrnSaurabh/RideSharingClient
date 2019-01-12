@@ -46,12 +46,13 @@ public class TaxiResponseWritter implements CommandLineRunner{
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			TaxiResponse response = null;
 			File file = new File(responseDir);
-			try {
+			try (FileWriter fileWriter = new FileWriter(file, true)){
 				file.createNewFile();
 				while (true) {
 					response = responseQueue.take();
 					log.info("Response recieved from queue by writting thread: "+ Thread.currentThread().getId()+"Response: "+response);
-					gson.toJson(response, new FileWriter(file, true));
+					gson.toJson(response, fileWriter);
+					fileWriter.flush();
 				}
 			} catch (JsonIOException e) {
 				e.printStackTrace();

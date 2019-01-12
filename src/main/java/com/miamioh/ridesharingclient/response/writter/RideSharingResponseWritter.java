@@ -45,12 +45,13 @@ public class RideSharingResponseWritter implements CommandLineRunner {
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			RideSharingConfirmationAck ack = null;
 			File file = new File(responseDir);
-			try {
+			try (FileWriter fileWriter = new FileWriter(file, true)){
 				file.createNewFile();
 				while (true) {
 					ack = responseQueue.take();
 					log.info("Ack recieved from queue by writting thread: "+ Thread.currentThread().getId()+"Response: "+ack);
-					gson.toJson(ack, new FileWriter(file, true));
+					gson.toJson(ack, fileWriter);
+					fileWriter.flush();
 				}
 			} catch (JsonIOException e) {
 				e.printStackTrace();

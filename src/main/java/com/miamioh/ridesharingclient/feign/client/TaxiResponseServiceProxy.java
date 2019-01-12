@@ -9,7 +9,7 @@ import com.miamioh.ridesharingclient.model.response.TaxiResponse;
 @FeignClient(name="DistributedRideSharingTaxiResponse" ,url="${props.DistributedRideSharing.url}")
 public interface TaxiResponseServiceProxy {
 	
-	@GetMapping(value = "/RideSharing/TaxiResponses/{request_id}")
+	@GetMapping(value = "/RideSharing/TaxiResponse/{request_id}")
 	public TaxiResponse getTaxiResponsesByRequestId( @PathVariable(value="request_id") String requestId);
 
 }
