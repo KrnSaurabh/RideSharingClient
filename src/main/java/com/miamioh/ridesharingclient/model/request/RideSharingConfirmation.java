@@ -8,6 +8,7 @@ import lombok.ToString;
 
 public class RideSharingConfirmation {
 	
+	private String requestId;
 	private String responseId;
 	private String taxiId;
 	private boolean isConfirmed;

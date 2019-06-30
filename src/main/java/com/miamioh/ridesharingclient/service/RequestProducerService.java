@@ -99,7 +99,7 @@ public class RequestProducerService {
 		
 		try {
 			log.info("Sleeping before getting the response: "+Thread.currentThread().getId());
-			Thread.sleep(30000L);
+			Thread.sleep(60000L);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -109,10 +109,29 @@ public class RequestProducerService {
 		taxiResponseWritter.writeResponse(taxiResponsesByRequestId);
 		
 		RideSharingConfirmation confirmRequest = new RideSharingConfirmation();
+		confirmRequest.setRequestId(requestId);
 		confirmRequest.setConfirmed(true);
 		confirmRequest.setResponseId(taxiResponsesByRequestId.getResponseId());
 		confirmRequest.setTaxiId(taxiResponsesByRequestId.getTaxiId());
 		RideSharingConfirmationAck confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
+		while ( !confirmRideAck.isAckStatus()) {
+			try {
+				log.info("Sleeping before getting the response: "+Thread.currentThread().getId());
+				Thread.sleep(60000L);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			taxiResponsesByRequestId = taxiResponseServiceProxy.getTaxiResponsesByRequestId(requestId);
+			log.info("Taxi Response: "+taxiResponsesByRequestId);
+			taxiResponseWritter.writeResponse(taxiResponsesByRequestId);
+			
+			confirmRequest = new RideSharingConfirmation();
+			confirmRequest.setRequestId(requestId);
+			confirmRequest.setConfirmed(true);
+			confirmRequest.setResponseId(taxiResponsesByRequestId.getResponseId());
+			confirmRequest.setTaxiId(taxiResponsesByRequestId.getTaxiId());
+			confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
+		}
 		log.info("Taxi Confirmation Ack: "+confirmRideAck);
 		writter.writeResponse(confirmRideAck);
 	}
