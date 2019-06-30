@@ -114,7 +114,8 @@ public class RequestProducerService {
 		confirmRequest.setResponseId(taxiResponsesByRequestId.getResponseId());
 		confirmRequest.setTaxiId(taxiResponsesByRequestId.getTaxiId());
 		RideSharingConfirmationAck confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
-		while ( !confirmRideAck.isAckStatus()) {
+		int retryCount = 5;
+		while ( !confirmRideAck.isAckStatus() && retryCount > 0) {
 			try {
 				log.info("Sleeping before getting the response: "+Thread.currentThread().getId());
 				Thread.sleep(60000L);
@@ -131,6 +132,7 @@ public class RequestProducerService {
 			confirmRequest.setResponseId(taxiResponsesByRequestId.getResponseId());
 			confirmRequest.setTaxiId(taxiResponsesByRequestId.getTaxiId());
 			confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
+			retryCount--;
 		}
 		log.info("Taxi Confirmation Ack: "+confirmRideAck);
 		writter.writeResponse(confirmRideAck);
