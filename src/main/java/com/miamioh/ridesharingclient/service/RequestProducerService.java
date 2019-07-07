@@ -13,7 +13,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import com.miamioh.ridesharingclient.feign.client.ConfirmRideProxy;
-import com.miamioh.ridesharingclient.feign.client.TaxiResponseServiceProxy;
 import com.miamioh.ridesharingclient.model.request.Event;
 import com.miamioh.ridesharingclient.model.request.RideSharingConfirmation;
 import com.miamioh.ridesharingclient.model.request.RideSharingRequest;
@@ -35,8 +34,8 @@ public class RequestProducerService {
 	@Value(value = "${kafka.topic}")
     private String topicName;
 	
-	@Autowired
-	private TaxiResponseServiceProxy taxiResponseServiceProxy;
+	/*@Autowired
+	private TaxiResponseServiceProxy taxiResponseServiceProxy;*/
 	
 	@Autowired
 	private ConfirmRideProxy confirmRideProxy;
@@ -104,38 +103,43 @@ public class RequestProducerService {
 			e.printStackTrace();
 		}
 		log.info("After Sleep "+Thread.currentThread().getId());
-		TaxiResponse taxiResponsesByRequestId = taxiResponseServiceProxy.getTaxiResponsesByRequestId(requestId);
-		log.info("Taxi Response: "+taxiResponsesByRequestId);
-		taxiResponseWritter.writeResponse(taxiResponsesByRequestId);
-		
-		RideSharingConfirmation confirmRequest = new RideSharingConfirmation();
-		confirmRequest.setRequestId(requestId);
-		confirmRequest.setConfirmed(true);
-		confirmRequest.setResponseId(taxiResponsesByRequestId.getResponseId());
-		confirmRequest.setTaxiId(taxiResponsesByRequestId.getTaxiId());
-		RideSharingConfirmationAck confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
-		int retryCount = 5;
-		while ( !confirmRideAck.isAckStatus() && retryCount > 0) {
-			try {
-				log.info("Sleeping before getting the response: "+Thread.currentThread().getId());
-				Thread.sleep(60000L);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			taxiResponsesByRequestId = taxiResponseServiceProxy.getTaxiResponsesByRequestId(requestId);
+		TaxiResponse taxiResponsesByRequestId = confirmRideProxy.getTaxiResponsesByRequestId(requestId);
+		if(taxiResponsesByRequestId != null) {
 			log.info("Taxi Response: "+taxiResponsesByRequestId);
 			taxiResponseWritter.writeResponse(taxiResponsesByRequestId);
 			
-			confirmRequest = new RideSharingConfirmation();
+			RideSharingConfirmation confirmRequest = new RideSharingConfirmation();
 			confirmRequest.setRequestId(requestId);
 			confirmRequest.setConfirmed(true);
 			confirmRequest.setResponseId(taxiResponsesByRequestId.getResponseId());
 			confirmRequest.setTaxiId(taxiResponsesByRequestId.getTaxiId());
-			confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
-			retryCount--;
+			RideSharingConfirmationAck confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
+			int retryCount = 5;
+			while ( !confirmRideAck.isAckStatus() && retryCount > 0) {
+				log.info("Taxi Confirmation Ack: "+confirmRideAck);
+				writter.writeResponse(confirmRideAck);
+				try {
+					log.info("Sleeping before getting the response: "+Thread.currentThread().getId());
+					Thread.sleep(60000L);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				taxiResponsesByRequestId = confirmRideProxy.getTaxiResponsesByRequestId(requestId);
+				log.info("Taxi Response: "+taxiResponsesByRequestId);
+				taxiResponseWritter.writeResponse(taxiResponsesByRequestId);
+				
+				confirmRequest = new RideSharingConfirmation();
+				confirmRequest.setRequestId(requestId);
+				confirmRequest.setConfirmed(true);
+				confirmRequest.setResponseId(taxiResponsesByRequestId.getResponseId());
+				confirmRequest.setTaxiId(taxiResponsesByRequestId.getTaxiId());
+				confirmRideAck = confirmRideProxy.confirmRide(confirmRequest);
+				retryCount--;
+			}
+			log.info("Taxi Confirmation Ack: "+confirmRideAck);
+			writter.writeResponse(confirmRideAck);
 		}
-		log.info("Taxi Confirmation Ack: "+confirmRideAck);
-		writter.writeResponse(confirmRideAck);
+		
 	}
 
 }
