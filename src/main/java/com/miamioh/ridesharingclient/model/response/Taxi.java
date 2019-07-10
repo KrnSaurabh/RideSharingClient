@@ -1,7 +1,5 @@
 package com.miamioh.ridesharingclient.model.response;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,6 +12,6 @@ public class Taxi {
 	private double longitude;
 	private double latitude;
 	private String model;
-	private AtomicInteger noOfPassenger;
+	private Integer noOfPassenger;
 	
 }

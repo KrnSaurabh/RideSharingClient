@@ -19,5 +19,6 @@ public class TaxiResponse {
 	private double distanceInKms;
 	private double cost;
 	private Long pickTimeInMinutes;
+	private Double psoResponseTimeInSeconds;
 	
 }
